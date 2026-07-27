@@ -4,6 +4,15 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
+
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 ADMIN_CHAT_ID = os.environ["ADMIN_CHAT_ID"]
 VALID_CODES = set(
@@ -22,8 +31,11 @@ def send_telegram(text):
     return resp.ok
 
 
-@app.route("/order", methods=["POST"])
+@app.route("/order", methods=["POST", "OPTIONS"])
 def order():
+    if request.method == "OPTIONS":
+        return "", 200
+
     data = request.get_json(force=True) or {}
     code = str(data.get("code", "")).strip()
     pseudo = str(data.get("pseudo", "")).strip() or "non renseigne"
@@ -46,8 +58,11 @@ def order():
     return jsonify({"ok": True})
 
 
-@app.route("/request-access", methods=["POST"])
+@app.route("/request-access", methods=["POST", "OPTIONS"])
 def request_access():
+    if request.method == "OPTIONS":
+        return "", 200
+
     data = request.get_json(force=True) or {}
     pseudo = str(data.get("pseudo", "")).strip() or "non renseigne"
     referrer = str(data.get("referrer", "")).strip() or "non renseigne"
