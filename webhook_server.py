@@ -39,7 +39,9 @@ def order():
     data = request.get_json(force=True) or {}
     code = str(data.get("code", "")).strip()
     pseudo = str(data.get("pseudo", "")).strip() or "non renseigne"
-    flavor = str(data.get("flavor", "")).strip() or "non choisi"
+    adresse = str(data.get("adresse", "")).strip() or "non renseignee"
+    modele = str(data.get("modele", "")).strip() or "non choisi"
+    flavor = str(data.get("flavor", "")).strip() or "non renseigne"
     time_slot = str(data.get("time_slot", "")).strip() or "non choisi"
 
     if code not in VALID_CODES:
@@ -48,12 +50,28 @@ def order():
     text = (
         "Nouvelle commande (lien web)\n"
         f"Pseudo Snapchat : {pseudo}\n"
+        f"Adresse : {adresse}\n"
+        f"Modele : {modele}\n"
         f"Gout : {flavor}\n"
         f"Creneau : {time_slot}"
     )
 
     if not send_telegram(text):
         return jsonify({"ok": False, "error": "telegram_error"}), 502
+
+    return jsonify({"ok": True})
+
+
+@app.route("/check-code", methods=["POST", "OPTIONS"])
+def check_code():
+    if request.method == "OPTIONS":
+        return "", 200
+
+    data = request.get_json(force=True) or {}
+    code = str(data.get("code", "")).strip()
+
+    if code not in VALID_CODES:
+        return jsonify({"ok": False, "error": "invalid_code"}), 403
 
     return jsonify({"ok": True})
 
