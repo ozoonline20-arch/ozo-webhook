@@ -64,6 +64,7 @@ def enregistrer_usage_code(code, pseudo):
             f"?code=eq.{code}&select=pseudo,statut"
         )
         r = requests.get(get_url, headers=supabase_headers(), timeout=8)
+        print(f"[SUPABASE GET] status={r.status_code} body={r.text[:300]}", flush=True)
         ancien_pseudo = ""
         if r.ok and isinstance(r.json(), list) and r.json():
             ancien_pseudo = (r.json()[0].get("pseudo") or "").strip()
@@ -77,6 +78,7 @@ def enregistrer_usage_code(code, pseudo):
             json=payload,
             timeout=8,
         )
+        print(f"[SUPABASE PATCH] status={rp.status_code} body={rp.text[:300]}", flush=True)
         if not rp.ok:
             return False, "echec enregistrement"
 
@@ -84,7 +86,8 @@ def enregistrer_usage_code(code, pseudo):
         if ancien_pseudo and ancien_pseudo.lower() != pseudo.lower():
             return True, f"ATTENTION : code deja associe a {ancien_pseudo}"
         return True, "enregistre"
-    except Exception:
+    except Exception as e:
+        print(f"[SUPABASE EXCEPTION] {repr(e)}", flush=True)
         return False, "erreur reseau supabase"
 
 
